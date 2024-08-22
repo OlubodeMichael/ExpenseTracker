@@ -8,6 +8,7 @@ import ManageExpense from './screens/ManageExpense';
 import AllExpenses from './screens/AllExpenses';
 import RecentExpenses from './screens/RecentExpenses';
 import IconButton from './components/Ui/IconButton';
+import ExpensesContextProvider from './store/expenses-context';
 
 
 const Stack = createNativeStackNavigator()
@@ -50,6 +51,7 @@ export default function App() {
   return (
       <>
         <StatusBar style="auto" />
+        <ExpensesContextProvider>
         <NavigationContainer>
           <Stack.Navigator 
             initialRouteName="Expenses Overview" 
@@ -71,6 +73,7 @@ export default function App() {
             <Stack.Screen  name="Expenses Overview" component={ExpensesOverview} options={{headerShown: false}}/>
           </Stack.Navigator>
         </NavigationContainer>
+        </ExpensesContextProvider>
       </>
       
     
