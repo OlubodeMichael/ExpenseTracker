@@ -1,16 +1,49 @@
 import ExpensesOutput from "../components/ExpensesOutput/ExpensesOutput"
 import { ExpensesContext } from "../store/expenses-context"
-import { useContext} from "react"
+import { useContext, useEffect, useState} from "react"
 import { getDateMinusDays } from "../util/date"
+import { fetchExpenses } from "../util/http"
+import LoadingOverlay from "../components/Ui/LoadingOverlay"
+import ErrorOverlay from "../components/Ui/ErrorOverlay"
 
 function RecentExpenses() {
+    const [isFetching, setIsFetching] = useState(false)
+    const [error, setError] = useState()
     const expensesCtx = useContext(ExpensesContext)
-    const recentExpenses = expensesCtx.expenses.filter((expense) => {
-        const today = new Date()
-        const date7DaysAgo = getDateMinusDays(today, 7)
 
-        return (expense.date >= date7DaysAgo) && (expense.date <= today)
-    })
+    useEffect(() => {
+        async function getExpenses() {
+            setIsFetching(true);
+            try {
+                const expenses = await fetchExpenses();
+                expensesCtx.setExpenses(expenses);
+            } catch (error) {
+                setError('Could not fetch expenses')
+            } finally {
+                setIsFetching(false);
+            }
+        }
+        getExpenses();
+    }, []);
+
+    const errorHandler = () => {
+        setError(null)
+    }
+    
+    if (error && !isFetching) {
+        return <ErrorOverlay message={error} onConfirm={errorHandler}/>
+    }
+    if (isFetching) {
+        return <LoadingOverlay />
+    }
+    const recentExpenses = expensesCtx.expenses.filter((expense) => {
+        const today = new Date();
+        const date7DaysAgo = getDateMinusDays(today, 7);
+
+        const expenseDate = new Date(expense.date);
+
+        return (expenseDate >= date7DaysAgo) && (expenseDate <= today);
+    });
     return <ExpensesOutput expensesPeriod="Last 7 Days" expenses={recentExpenses} fallbackText="No expenses registered for the last 7 days."/>
 }
 export default RecentExpenses
